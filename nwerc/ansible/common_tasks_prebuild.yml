@@ -87,6 +87,7 @@
         src: files/lib/vendor/
         dest: "{{DJDIR}}/lib/vendor/"
         owner: no
+        group: no
         use_ssh_args: true
         rsync_path: sudo rsync
 
