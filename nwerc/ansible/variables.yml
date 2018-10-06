@@ -1,11 +1,8 @@
 # Directory of the domjudge repository checkout.
 DJDIR: /opt/domjudge-nwerc
 
-# URL and IP of domserver from judgehosts. A hostname 'domserver' with
-# DOMSERVER_IP will be added to the judgehost /etc/hosts file.
-DOMSERVER: https://domjudge
-DOMSERVER_IP: 10.3.3.215
-DOMSERVER_URL: "{{DOMSERVER}}"
+# URL of domserver
+DOMSERVER_URL: "https://judge.gehack.nl"
 
 DJ_DB_DB: domjudge_nwerc
 DJ_DB_USER: domjudge_nwerc
@@ -26,3 +23,6 @@ DJ_SHELL_USER_PW: some-hashed-password
 
 # Key for domjudge user
 DJ_SSH_KEY: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEW4j7DOQ/BGT6ATtBLAcUHGVuHyydqs7E31DMbcX5uO icpc2018@domjudge-ccsadmin2
+
+# Where to download the Kotlin .deb from
+KOTLIN_SRC: https://www.domjudge.org/icpc-kotlinc_1.1.4-3~icpc_all.deb

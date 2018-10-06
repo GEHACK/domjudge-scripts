@@ -25,10 +25,25 @@
     - name: template out the restapi secret file
       template: src=files/restapi.secret.j2 dest={{DJDIR}}/etc/restapi.secret owner=domjudge group=domjudge mode=0600
 
+    - name: disable clearing Symfony cache when building
+      lineinfile:
+        dest: "{{DJDIR}}/Makefile"
+        regexp: "-C webapp clear-cache"
+        state: absent
+
     - include: common_tasks_build.yml
 
+    - name: download Kotlin debian package
+      get_url:
+        url: "{{KOTLIN_SRC}}"
+        dest: /home/domjudge/kotlin.deb
+
+    - name: install Kotlin debian package
+      apt:
+        deb: /home/domjudge/kotlin.deb
+
     - name: create chroot
-      shell: "{{DJDIR}}/misc-tools/dj_make_chroot -y -i icpc-kotlinc 2>&1 | tee /tmp/dj_make_chroot.log"
+      shell: "{{DJDIR}}/misc-tools/dj_make_chroot -y -i openjdk-8-jdk -l /home/domjudge/kotlin.deb 2>&1 | tee /tmp/dj_make_chroot.log"
       args:
         creates: "/chroot/domjudge"
 
@@ -38,6 +53,12 @@
         regexp: '^GRUB_CMDLINE_LINUX_DEFAULT='
         line: 'GRUB_CMDLINE_LINUX_DEFAULT="quiet splash cgroup_enable=memory swapaccount=1"'
       notify: update-grub
+
+    - name: install turboboost disable script
+      copy:
+        src: files/disable-turboboost_ht
+        dest: /root/disable_turboboost_ht.sh
+        mode: 0755
 
     - name: copy systemd unit files
       copy: src=files/{{item}}.service dest=/etc/systemd/system/
