@@ -94,14 +94,6 @@
 #      command: "{{DJDIR}}/bin/dj_setup_database -u root bare-install"
 #      when: "'failed' in db_status.stdout"
 
-    - name: fix background color
-      lineinfile:
-        regexp: '^(\s*background-color):\s+white\s*;'
-        line: '\1: {{BACKGROUND_COLOR}};'
-        backrefs: yes
-        dest: "{{DJDIR}}/webapp/web/style.css"
-      when: BACKGROUND_COLOR is defined
-
     - name: Copy SSL public key file
       copy: src=files/2018wf-domjudge.crt dest=/etc/ssl/certs/2018wf-domjudge.crt owner=root group=root mode=0600
 
