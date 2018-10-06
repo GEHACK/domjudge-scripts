@@ -6,8 +6,8 @@
   handlers:
     - name: restart mysql
       service: name=mysql state=restarted
-    - name: restart apache2
-      service: name=apache2 state=restarted
+    - name: restart nginx
+      service: name=nginx state=restarted
   tasks:
     - name: include global variables
       include_vars: variables.yml
@@ -21,14 +21,13 @@
       apt: pkg={{item}} state=present
       with_items:
         - mysql-server
-        - apache2
-        - libapache2-mod-php
+        - nginx
         - python-mysqldb
         - php-intl
 
     - name: set PHP timezone
       lineinfile:
-        dest: /etc/php/7.0/apache2/php.ini
+        dest: /etc/php/7.2/fpm/php.ini
         state: present
         regexp: 'date\.timezone\s*='
         line: 'date.timezone = {{TIMEZONE}}'
@@ -36,7 +35,7 @@
     - name: enable php modules
       command: phpenmod {{item}}
       args:
-        creates: /etc/php/7.0/apache2/conf.d/20-{{item}}.ini
+        creates: /etc/php/7.2/fpm/conf.d/20-{{item}}.ini
       with_items:
         - mcrypt
         - zip
@@ -58,99 +57,10 @@
 
     - include: common_tasks_build.yml
 
-# TODO: find a way to run this correctly when having a master-master setup that doesn't use localhost in the dbpasswords.secret file
-#    - name: check if the database is configured
-#      command: "{{DJDIR}}/bin/dj_setup_database -u root status"
-#      register: db_status
-#      ignore_errors: true
-#    - name: make sure the database is configured
-#      command: "{{DJDIR}}/bin/dj_setup_database -u root bare-install"
-#      when: "'failed' in db_status.stdout"
-
-    - name: Copy SSL public key file
-      copy: src=files/2018wf-domjudge.crt dest=/etc/ssl/certs/2018wf-domjudge.crt owner=root group=root mode=0600
-
-    - name: Copy SSL private key file
-      copy: src=files/2018wf-domjudge.pem dest=/etc/ssl/private/2018wf-domjudge.pem owner=root group=root mode=0600
-
-    - name: Update servername in apache config
-      lineinfile:
-        insertbefore: '^#Global config'
-        line: 'Servername {{ansible_hostname}}'
-        dest: /etc/apache2/apache2.conf
-      notify: restart apache2
-
-    - name: link in domjudge apache conf
-      file: src={{DJDIR}}/etc/apache.conf dest=/etc/apache2/conf-available/domjudge.conf state=link
-      notify: restart apache2
-
-    - name: enable apache2 conf for domjudge
-      file: src=/etc/apache2/conf-available/domjudge.conf dest=/etc/apache2/conf-enabled/domjudge.conf state=link
-      notify: restart apache2
-
-    - name: enable apache2 modules
-      apache2_module: name={{item}} state=present
-      with_items:
-        - ssl
-        - rewrite
-      notify: restart apache2
-
-    - name: disable default apache site
-      file: state=absent path=/etc/apache2/sites-enabled/000-default
-      notify: restart apache2
-
-    - name: enable default-ssl apache site
-      file: src=/etc/apache2/sites-available/default-ssl.conf dest=/etc/apache2/sites-enabled/000-default-ssl state=link
-      notify: restart apache2
-
-    - name: disable apache keepalive
-      replace:
-        dest: /etc/apache2/apache2.conf
-        regexp: 'KeepAlive\s+On'
-        replace: 'KeepAlive Off'
-      notify: restart apache2
-
-    - name: change NPM prefork MinSpareServers
-      replace:
-        dest: /etc/apache2/mods-enabled/mpm_prefork.conf
-        regexp: '^[^#].*MinSpareServers.*$'
-        replace: '\tMinSpareServers   50'
-      notify: restart apache2
-
-    - name: change NPM prefork MaxSpareServers
-      replace:
-        dest: /etc/apache2/mods-enabled/mpm_prefork.conf
-        regexp: '^[^#].*MaxSpareServers.*$'
-        replace: '\tMaxSpareServers   100'
-      notify: restart apache2
-
-    - name: change NPM prefork MaxRequestWorkers
-      replace:
-        dest: /etc/apache2/mods-enabled/mpm_prefork.conf
-        regexp: '^[^#].*MaxRequestWorkers.*$'
-        replace: '\tMaxRequestWorkers 500'
-      notify: restart apache2
-
-    - name: add NPM prefork ServerLimit
-      lineinfile:
-        dest: /etc/apache2/mods-enabled/mpm_prefork.conf
-        regexp: 'ServerLimit'
-        line: '	ServerLimit       500'
-        insertbefore: '/IfModule'
-      notify: restart apache2
-
-    - name: autologin domjudge user
-      copy: src=files/lightdm-domjudge.conf dest=/etc/lightdm/lightdm.conf.d/domjudge.conf
-
-    - name: make sure autostart directory exists
-      file: dest=/home/domjudge/.config/autostart state=directory owner=domjudge group=domjudge
-      tags: fix_autostart
-
-    - name: add autostart shortcuts
-      copy: src=files/{{item}}.desktop dest=/home/domjudge/.config/autostart/ owner=domjudge group=domjudge mode=0755
-      with_items:
-        - htop
-        - taillog-domserver-apache-error
-        - taillog-domserver-symfony-error
-        - domjudgelogo-domserver
-
+    - name: check if the database is configured
+      command: "{{DJDIR}}/bin/dj_setup_database -u root status"
+      register: db_status
+      ignore_errors: true
+    - name: make sure the database is configured
+      command: "{{DJDIR}}/bin/dj_setup_database -u root bare-install"
+      when: "'failed' in db_status.stdout"

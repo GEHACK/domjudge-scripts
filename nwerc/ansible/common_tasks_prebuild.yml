@@ -1,40 +1,5 @@
 # Common tasks before building DOMjudge.
 ---
-    - name: fix apt sources list
-      tags: packages
-      replace:
-        dest: /etc/apt/sources.list
-        regexp: 'pc2cancer\.ecs\.csus\.edu'
-        replace: 'packages'
-
-    - name: remove pycharm repo
-      tags: packages
-      replace:
-        dest: /etc/apt/sources.list
-        regexp: '^([^#].*pycharm.*)$'
-        replace: '# \1'
-
-    - name: add packages to hosts file
-      tags: packages
-      lineinfile:
-        dest: /etc/hosts
-        regexp: '^10\.3\.3\.209'
-        line: "10.3.3.209	packages"
-
-    - name: add domjudge to hosts file
-      lineinfile:
-        dest: /etc/hosts
-        regexp: '^10\.3\.3\.215'
-        line: "10.3.3.215	domjudge"
-
-    - name: update ssl certificate for packages
-      tags: packages
-      copy: src=files/packages.pem dest=/usr/local/share/ca-certificates/packages.crt
-      notify: update-ca-certificates
-
-    - meta: flush_handlers
-      tags: packages
-
     - name: set timezone
       timezone:
         name: {{TIMEZONE}}
@@ -76,15 +41,6 @@
         - screen
         - qmlscene
 
-    - name: remove some packages
-      tags: packages
-      apt: pkg={{item}} state=absent
-      with_items:
-      - ntp
-
-    - name: restart systemd timesyncd
-      command: systemctl restart systemd-timesyncd
-
     - name: create domjudge user
       user:
         name: domjudge
@@ -105,28 +61,15 @@
       ini_file: dest=/home/domjudge/.gitconfig section=user option="{{item.name}}" value="{{item.value}}"
       with_items:
         - { name: 'email', value: 'team@domjudge.org' }
-        - { name: 'name', value: 'DOMjudge @ ICPC WF' }
-
-    - name: Allow 'sudo' group to have passwordless sudo
-      lineinfile:
-        dest: /etc/sudoers
-        state: present
-        regexp: '^%sudo'
-        line: '%sudo ALL=(ALL) NOPASSWD: ALL'
+        - { name: 'name', value: 'DOMjudge @ NWERC' }
 
     - name: Create .ssh directory
       file: path="/home/domjudge/.ssh" group=domjudge owner=domjudge mode=0700 state=directory
 
-    - name: Copy SSH key for git access
-      copy: src=files/dj_ed25519 dest=/home/domjudge/.ssh/dj_ed25519 owner=domjudge group=domjudge mode=0600
-
-    - name: Create SSH config
-      template: src=files/ssh-config-domjudge.j2 dest=/home/domjudge/.ssh/config owner=domjudge group=domjudge mode=0600
-
     - name: create working copy from the repo
       become: yes
       become_user: domjudge
-      git: repo=domjudge@{{DJ_GIT_HOST}}:domjudge dest={{DJDIR}} version=ICPC-live accept_hostkey=yes update=yes
+      git: repo=https://github.com/GEHACK/domjudge.git dest={{DJDIR}} version=master accept_hostkey=yes update=yes
       register: git_working_copy
 
     - name: Copy in composer dependencies
