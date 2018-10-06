@@ -31,10 +31,10 @@
     - include: common_tasks_prebuild.yml
 
     - name: template out the restapi secret file
-      template: src=files/restapi.secret-domserver.j2 dest={{DJDIR}}/etc/restapi.secret owner=domjudge group=domjudge mode=0600
+      template: src=files/restapi.secret-domserver.j2 dest={{DJDIR}}/etc/restapi.secret owner=domjudge group=domjudge mode=0640
 
     - name: template out the dbpasswords secret file
-      template: src=files/dbpasswords.secret.j2 dest={{DJDIR}}/etc/dbpasswords.secret owner=domjudge group=domjudge mode=0600
+      template: src=files/dbpasswords.secret.j2 dest={{DJDIR}}/etc/dbpasswords.secret owner=domjudge group=domjudge mode=0640
 
     - name: install domserver required packages
       apt: pkg={{item}} state=present
