@@ -1,5 +1,5 @@
 # Directory of the domjudge repository checkout.
-DJDIR: /home/domjudge/domjudge
+DJDIR: /opt/domjudge-nwerc
 
 # URL and IP of domserver from judgehosts. A hostname 'domserver' with
 # DOMSERVER_IP will be added to the judgehost /etc/hosts file.

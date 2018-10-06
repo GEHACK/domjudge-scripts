@@ -9,7 +9,7 @@ After=network.target
 [Service]
 Type=simple
 
-ExecStart=/home/domjudge/domjudge/bin/judgedaemon -n 0
+ExecStart=/opt/domjudge-nwerc/bin/judgedaemon -n 0
 User=domjudge
 
 Restart=always

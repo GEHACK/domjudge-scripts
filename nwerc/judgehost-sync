@@ -29,7 +29,7 @@ ssh $TARGET 'apt-get -y dselect-upgrade'
 # Synchronize other stuff:
 rsync -av --delete /etc/{rc.local,ntp.conf,timezone,localtime,cgconfig.conf,sudoers.d,hosts,php5,lightdm} $TARGET:/etc
 
-rsync -av --delete --exclude=/output /home/domjudge/domjudge/ $TARGET:/home/domjudge/domjudge
+rsync -av --delete --exclude=/output /opt/domjudge-nwerc/ $TARGET:/opt/domjudge-nwerc
 ssh $TARGET 'su -c "cd ~/domjudge && make maintainer-clean && make maintainer-conf CONFIGURE_FLAGS=--disable-submitclient CONFIGURE_FLAGS+=--disable-doc-build && make maintainer-install" domjudge'
 ssh $TARGET "for i in '' -1 -2 -3 -4 ; do useradd -d /nonexistent -g nogroup -s /bin/false domjudge-run\$i ; done"
 
