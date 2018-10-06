@@ -7,6 +7,10 @@ DOMSERVER: https://domjudge
 DOMSERVER_IP: 10.3.3.215
 DOMSERVER_URL: "{{DOMSERVER}}"
 
+DJ_DB_DB: domjudge_nwerc
+DJ_DB_USER: domjudge_nwerc
+DJ_DB_PASS: somedbpass
+
 TIMEZONE: "Europe/Amsterdam"
 
 # Credentials for the REST API.

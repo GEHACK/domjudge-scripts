@@ -2,11 +2,11 @@
 ---
     - name: set timezone
       timezone:
-        name: {{TIMEZONE}}
+        name: "{{TIMEZONE}}"
 
     - name: install common required/useful packages
       tags: packages
-      apt: pkg={{item}} state=present
+      apt: pkg={{item}} state=present update_cache=yes
       with_items:
         - autoconf
         - automake
@@ -40,6 +40,12 @@
         - mycli
         - screen
         - qmlscene
+        - linuxdoc-tools
+        - texlive-latex-recommended
+        - texlive-latex-extra
+        - texlive-fonts-recommended
+        - texlive-lang-european
+        - python-pygments
 
     - name: create domjudge user
       user:
@@ -57,7 +63,6 @@
     - name: configure git as domjudge user
       become: yes
       become_user: domjudge
-      #command: git config --global {{item.name}} "{{item.value}}"
       ini_file: dest=/home/domjudge/.gitconfig section=user option="{{item.name}}" value="{{item.value}}"
       with_items:
         - { name: 'email', value: 'team@domjudge.org' }
@@ -65,6 +70,9 @@
 
     - name: Create .ssh directory
       file: path="/home/domjudge/.ssh" group=domjudge owner=domjudge mode=0700 state=directory
+
+    - name: Create directory for DOMjudge installation
+      file: path="{{DJDIR}}" group=domjudge owner=domjudge mode=0755 state=directory
 
     - name: create working copy from the repo
       become: yes
