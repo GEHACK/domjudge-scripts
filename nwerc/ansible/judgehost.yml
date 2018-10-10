@@ -14,11 +14,14 @@
       user: name={{item}} createhome=no home=/nonexistent group=nogroup shell=/bin/false
       with_items:
         - domjudge-run-0
-        - domjudge-run-1
-        - domjudge-run-2
-        - domjudge-run-3
     - name: create domjudge-run group
       group: name=domjudge-run state=present
+
+    - name: disable pc2cancer repo
+      lineinfile:
+        dest: /etc/apt/sources.list
+        regexp: 'pc2cancer'
+        state: absent
 
     - include: common_tasks_prebuild.yml
 
@@ -33,17 +36,54 @@
 
     - include: common_tasks_build.yml
 
-    - name: download Kotlin debian package
-      get_url:
-        url: "{{KOTLIN_SRC}}"
-        dest: /home/domjudge/kotlin.deb
+    - name: create directory to store .deb's
+      file: dest=/root/chroot_debs state=directory owner=root group=root
 
-    - name: install Kotlin debian package
-      apt:
-        deb: /home/domjudge/kotlin.deb
+      # These .deb's are for specific versions of compilers that we copy from the host machine
+    - name: copy deb's that need to be installed
+      copy:
+        src: '/var/cache/apt/archives/{{item}}'
+        remote_src: yes
+        dest: '/root/chroot_debs/{{item}}'
+      with_items:
+        - binutils-common_2.30-21ubuntu1~18.04_amd64.deb
+        - binutils-x86-64-linux-gnu_2.30-21ubuntu1~18.04_amd64.deb
+        - binutils_2.30-21ubuntu1~18.04_amd64.deb
+        - cpp-7_7.3.0-27ubuntu1~18.04_amd64.deb
+        - cpp_4%3a7.3.0-3ubuntu2.1_amd64.deb
+        - gcc-7_7.3.0-27ubuntu1~18.04_amd64.deb
+        - gcc-7-base_7.3.0-27ubuntu1~18.04_amd64.deb
+        - gcc_4%3a7.3.0-3ubuntu2.1_amd64.deb
+        - icpc-kotlinc_1.2.70~icpc_all.deb
+        - libasan4_7.3.0-27ubuntu1~18.04_amd64.deb
+        - libatomic1_8.2.0-1ubuntu2~18.04_amd64.deb
+        - libbinutils_2.30-21ubuntu1~18.04_amd64.deb
+        - libcc1-0_8.2.0-1ubuntu2~18.04_amd64.deb
+        - libcilkrts5_7.3.0-27ubuntu1~18.04_amd64.deb
+        - libgcc-7-dev_7.3.0-27ubuntu1~18.04_amd64.deb
+        - libgomp1_8.2.0-1ubuntu2~18.04_amd64.deb
+        - libisl19_0.19-1_amd64.deb
+        - libitm1_8.2.0-1ubuntu2~18.04_amd64.deb
+        - liblsan0_8.2.0-1ubuntu2~18.04_amd64.deb
+        - libmpc3_1.1.0-1_amd64.deb
+        - libmpfr6_4.0.1-1_amd64.deb
+        - libmpx2_8.2.0-1ubuntu2~18.04_amd64.deb
+        - libquadmath0_8.2.0-1ubuntu2~18.04_amd64.deb
+        - libtsan0_8.2.0-1ubuntu2~18.04_amd64.deb
+        - libubsan0_7.3.0-27ubuntu1~18.04_amd64.deb
+        - openjdk-11-jdk-headless_10.0.2+13-1ubuntu0.18.04.2_amd64.deb
+        - openjdk-11-jdk_10.0.2+13-1ubuntu0.18.04.2_amd64.deb
+        - openjdk-11-jre-headless_10.0.2+13-1ubuntu0.18.04.2_amd64.deb
+        - openjdk-11-jre_10.0.2+13-1ubuntu0.18.04.2_amd64.deb
+        - pypy-lib_5.10.0+dfsg-3build2_amd64.deb
+        - pypy_5.10.0+dfsg-3build2_amd64.deb
+        - python3.7-minimal_3.7.0-1~18.04_amd64.deb
+        - python3.7_3.7.0-1~18.04_amd64.deb
+        - libpython3.7-minimal_3.7.0-1~18.04_amd64.deb
+        - libpython3.7-stdlib_3.7.0-1~18.04_amd64.deb
 
     - name: create chroot
-      shell: "{{DJDIR}}/misc-tools/dj_make_chroot -y -i openjdk-8-jdk -l /home/domjudge/kotlin.deb 2>&1 | tee /tmp/dj_make_chroot.log"
+      shell: "{{DJDIR}}/misc-tools/dj_make_chroot -y -i openjdk-11-jdk -l '/root/chroot_debs/*.deb' 2>&1 | tee /tmp/dj_make_chroot.log"
       args:
         creates: "/chroot/domjudge"
 

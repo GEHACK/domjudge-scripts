@@ -24,5 +24,4 @@ DJ_SHELL_USER_PW: some-hashed-password
 # Key for domjudge user
 DJ_SSH_KEY: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEW4j7DOQ/BGT6ATtBLAcUHGVuHyydqs7E31DMbcX5uO icpc2018@domjudge-ccsadmin2
 
-# Where to download the Kotlin .deb from
-KOTLIN_SRC: https://www.domjudge.org/icpc-kotlinc_1.1.4-3~icpc_all.deb
+DJ_SSH_KEY: ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAyTyFgSU6gyOLKWEMsYm/Bob42x6M0GDlhFb4VpvuoMVaq3FBRT1vjgIeFQZxyQyhxyaF6vyUVT4iUmSwdIY96/DMIk+rSudlrBhfqdU0m/QZSv/C2uJzP9c19lOUq+TWoE6PulsHLWxe6fsQCStDpYCE107rHf6UDNMhfRynPNTzw23Ge8+mhxQaDS0TnJ9D+vPkUC27tg8iWqjxnHjkYSSPL3QiHoh4m8m0JpfzE1v7ZztLM0JNClmH9FyoutYSicWO5F9OXlCmWkmY/aID5TRsy4VwmRCn4gdcaVMecM8XgYjZsszzDk9RGLiB2w+o7p0X5PI+WtDESOxhQGZsRQ== nicky@Strawberry.local
