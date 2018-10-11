@@ -31,10 +31,18 @@
     - name: disable clearing Symfony cache when building
       lineinfile:
         dest: "{{DJDIR}}/Makefile"
-        regexp: "-C webapp clear-cache"
-        state: absent
+        regexp: "^(.*-C webapp clear-cache)$"
+        line: '#\1'
+        backrefs: yes
 
     - include: common_tasks_build.yml
+
+    - name: re-enable clearing Symfony cache when building
+      lineinfile:
+        dest: "{{DJDIR}}/Makefile"
+        regexp: "^#(.*-C webapp clear-cache)$"
+        line: '\1'
+        backrefs: yes
 
     - name: create directory to store .deb's
       file: dest=/root/chroot_debs state=directory owner=root group=root

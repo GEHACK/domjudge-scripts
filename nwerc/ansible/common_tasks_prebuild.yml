@@ -77,7 +77,7 @@
     - name: create working copy from the repo
       become: yes
       become_user: domjudge
-      git: repo=https://github.com/GEHACK/domjudge.git dest={{DJDIR}} version=master accept_hostkey=yes update=yes force=yes
+      git: repo=https://github.com/GEHACK/domjudge.git dest={{DJDIR}} version=master accept_hostkey=yes update=yes
       register: git_working_copy
 
     - name: Copy in composer dependencies
