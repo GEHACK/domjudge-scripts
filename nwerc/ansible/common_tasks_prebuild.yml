@@ -77,7 +77,7 @@
     - name: create working copy from the repo
       become: yes
       become_user: domjudge
-      git: repo=https://github.com/DOMjudge/domjudge.git dest={{DJDIR}} version=nwerc accept_hostkey=yes update=yes
+      git: repo=https://github.com/DOMjudge/domjudge.git dest={{DJDIR}} version=nwerc2018 accept_hostkey=yes update=yes
       register: git_working_copy
 
     - name: fix permissions on composer directory
