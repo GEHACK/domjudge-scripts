@@ -78,7 +78,6 @@
         - gcc-7_7.3.0-27ubuntu1~18.04_amd64.deb
         - gcc-7-base_7.3.0-27ubuntu1~18.04_amd64.deb
         - gcc_4%3a7.3.0-3ubuntu2.1_amd64.deb
-        - kotlin.deb
         - libasan4_7.3.0-27ubuntu1~18.04_amd64.deb
         - libatomic1_8.2.0-1ubuntu2~18.04_amd64.deb
         - libbinutils_2.30-21ubuntu1~18.04_amd64.deb
