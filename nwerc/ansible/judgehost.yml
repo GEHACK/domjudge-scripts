@@ -63,6 +63,43 @@
       apt:
         deb: /root/chroot_debs/kotlin.deb
 
+    - name: download packages we do not have yet locally
+      command: "apt download {{ item }}"
+      args:
+        chdir: /var/cache/apt/archives
+        creates: "{{ item}}_*.deb"
+      with_items:
+        - binutils-common
+        - binutils-x86-64-linux-gnu
+        - binutils
+        - cpp-7
+        - cpp
+        - gcc-7
+        - gcc-7-base
+        - gcc
+        - libasan4
+        - libatomic1
+        - libbinutils
+        - libcc1-0
+        - libcilkrts5
+        - libgcc-7-dev
+        - libgomp1
+        - libisl19
+        - libitm1
+        - liblsan0
+        - libmpc3
+        - libmpfr6
+        - libmpx2
+        - libquadmath0
+        - libtsan0
+        - libubsan0
+        - pypy-lib
+        - pypy
+        - python3.7-minimal
+        - python3.7
+        - libpython3.7-minimal
+        - libpython3.7-stdlib
+
       # These .deb's are for specific versions of compilers that we copy from the host machine
     - name: copy deb's that need to be installed
       copy:
@@ -94,10 +131,10 @@
         - libquadmath0_8.2.0-1ubuntu2~18.04_amd64.deb
         - libtsan0_8.2.0-1ubuntu2~18.04_amd64.deb
         - libubsan0_7.3.0-27ubuntu1~18.04_amd64.deb
-        - openjdk-11-jdk-headless_10.0.2+13-1ubuntu0.18.04.2_amd64.deb
-        - openjdk-11-jdk_10.0.2+13-1ubuntu0.18.04.2_amd64.deb
-        - openjdk-11-jre-headless_10.0.2+13-1ubuntu0.18.04.2_amd64.deb
-        - openjdk-11-jre_10.0.2+13-1ubuntu0.18.04.2_amd64.deb
+        - openjdk-11-jdk-headless_10.0.2+13-1ubuntu0.18.04.3_amd64.deb
+        - openjdk-11-jdk_10.0.2+13-1ubuntu0.18.04.3_amd64.deb
+        - openjdk-11-jre-headless_10.0.2+13-1ubuntu0.18.04.3_amd64.deb
+        - openjdk-11-jre_10.0.2+13-1ubuntu0.18.04.3_amd64.deb
         - pypy-lib_5.10.0+dfsg-3build2_amd64.deb
         - pypy_5.10.0+dfsg-3build2_amd64.deb
         - python3.7-minimal_3.7.0-1~18.04_amd64.deb
