@@ -3,7 +3,7 @@
     - name: run maintainer-conf
       become: yes
       become_user: domjudge
-      command: make maintainer-conf
+      command: make maintainer-conf "CONFIGURE_FLAGS=--with-baseurl=https://judge/"
       register: dj_configured
       args:
         chdir: "{{DJDIR}}"
