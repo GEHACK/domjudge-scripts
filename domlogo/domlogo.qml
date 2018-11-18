@@ -19,7 +19,7 @@ import QtQuick.Window 2.2
 
 Window {
 	flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
-	color: "transparent"
+	color: "black"
 	x: 1000
 	y: 60
 	id: "window"
@@ -110,7 +110,7 @@ Window {
 	}
 	Rectangle {
 		id: "uni"
-		color: "black"
+		color: "transparent"
 		height: {
 			width
 		}
