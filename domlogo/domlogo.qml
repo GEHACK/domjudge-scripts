@@ -110,7 +110,7 @@ Window {
 	}
 	Rectangle {
 		id: "uni"
-		color: "transparent"
+		color: "black"
 		height: {
 			width
 		}
