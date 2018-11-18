@@ -14,7 +14,7 @@ foreach ($teams as $idx => $teamData) {
     }
     $teamData = explode("\t", $teamData);
 
-    $mapping[str_replace('INST-', '', $teamData[7])] = $teamData[0];
+    $mapping[str_replace('INST-', '', $teamData[7])][] = $teamData[0];
 }
 
 $sourceDir = $argv[2];
@@ -28,8 +28,10 @@ if ($handle = opendir($sourceDir))
             if (!isset($mapping[$entry])) {
                 echo "${entry} NOT FOUND!\n";
             } else {
-                $newName = sprintf('%s/%s.png', $domlogoDir, $mapping[$entry]);
-                copy($sourceDir . '/' . $entry . '/logo-512.png', $newName);
+                foreach ($mapping[$entry] as $team) {
+                    $newName = sprintf('%s/%s.png', $domlogoDir, $team);
+                    copy($sourceDir . '/' . $entry . '/logo-512.png', $newName);
+                }
             }
         }
     }
