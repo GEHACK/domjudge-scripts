@@ -197,3 +197,9 @@
         - apt-daily-upgrade.timer
         - apt-daily.timer
         - systemd-tmpfiles-clean.timer
+
+    - name: copy collectd config
+      copy: src=files/collectd.conf dest=/etc/collectd/collectd.conf
+
+    - name: enable and restart collectd
+      service: name=collectd enabled=yes state=restarted

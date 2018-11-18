@@ -46,6 +46,7 @@
         - texlive-fonts-recommended
         - texlive-lang-european
         - python-pygments
+        - collectd
 
     - name: create domjudge user
       user:
