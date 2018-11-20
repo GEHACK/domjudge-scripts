@@ -4,6 +4,12 @@
       timezone:
         name: "{{TIMEZONE}}"
 
+    - name: Create apt_pkg symlink
+      file:
+        src: /usr/lib/python3/dist-packages/apt_pkg.cpython-36m-x86_64-linux-gnu.so
+        dest: /usr/lib/python3/dist-packages/apt_pkg.cpython-37m-x86_64-linux-gnu.so
+        state: link
+
     - name: install common required/useful packages
       tags: packages
       apt: pkg={{item}} state=present update_cache=yes
