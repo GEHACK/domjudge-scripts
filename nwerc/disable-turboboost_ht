@@ -30,8 +30,8 @@ if [ -d $DIR ]; then
 	echo -n 1 > $DIR/no_turbo
 
 	# increase freq from powersaving to normal, but don't overclock
-	echo 100 > $DIR/min_perf_pct
-	echo 100 > $DIR/max_perf_pct
+	echo 80 > $DIR/min_perf_pct
+	echo 80 > $DIR/max_perf_pct
 else
 	echo "Warning: kernel turbo boost config not found in '$DIR'."
 fi
