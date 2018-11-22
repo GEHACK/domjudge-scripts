@@ -3,9 +3,6 @@
 - name: setup judgehost
   hosts: judgehost
   become: yes
-  handlers:
-    - name: update-grub
-      command: update-grub
   tasks:
     - name: include global variables
       include_vars: variables.yml
@@ -159,13 +156,16 @@
     - name: set up default greeter
       shell: "apt install lightdm-webkit-greeter --reinstall -y"
       when: chroot_created.changed
+        
+    - name: update grub
+      shell: "update-grub"
+      when: chroot_created.changed
 
     - name: fix kernel parameters
       lineinfile:
         dest: /etc/default/grub
         regexp: '^GRUB_CMDLINE_LINUX_DEFAULT='
         line: 'GRUB_CMDLINE_LINUX_DEFAULT="quiet splash cgroup_enable=memory swapaccount=1"'
-      notify: update-grub
 
     - name: install turboboost disable script
       copy:
