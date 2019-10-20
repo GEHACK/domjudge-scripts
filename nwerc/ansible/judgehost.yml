@@ -34,31 +34,10 @@
     - name: template out the restapi secret file
       template: src=files/restapi.secret.j2 dest={{DJDIR}}/etc/restapi.secret owner=domjudge group=domjudge mode=0600
 
-    - name: disable clearing Symfony cache when building
-      lineinfile:
-        dest: "{{DJDIR}}/Makefile"
-        regexp: "^(.*-C webapp clear-cache)$"
-        line: '#\1'
-        backrefs: yes
-
     - include: common_tasks_build.yml
-
-    - name: re-enable clearing Symfony cache when building
-      lineinfile:
-        dest: "{{DJDIR}}/Makefile"
-        regexp: "^#(.*-C webapp clear-cache)$"
-        line: '\1'
-        backrefs: yes
 
     - name: create directory to store .deb's
       file: dest=/root/chroot_debs state=directory owner=root group=root
-
-    - name: copy kotlinb deb
-      copy: src=files/kotlin.deb dest=/root/chroot_debs/kotlin.deb
-
-    - name: install Kotlin
-      apt:
-        deb: /root/chroot_debs/kotlin.deb
 
     - name: download packages we do not have yet locally
       command: "apt download {{ item }}"
@@ -74,6 +53,7 @@
         - gcc-7
         - gcc-7-base
         - gcc
+        - icpc-kotlinc
         - libasan4
         - libatomic1
         - libbinutils
@@ -90,12 +70,10 @@
         - libquadmath0
         - libtsan0
         - libubsan0
+        - pypy3-lib
+        - pypy3
         - pypy-lib
         - pypy
-        - python3.7-minimal
-        - python3.7
-        - libpython3.7-minimal
-        - libpython3.7-stdlib
 
       # These .deb's are for specific versions of compilers that we copy from the host machine
     - name: copy deb's that need to be installed
@@ -104,40 +82,39 @@
         remote_src: yes
         dest: '/root/chroot_debs/{{item}}'
       with_items:
-        - binutils-common_2.30-21ubuntu1~18.04_amd64.deb
-        - binutils-x86-64-linux-gnu_2.30-21ubuntu1~18.04_amd64.deb
-        - binutils_2.30-21ubuntu1~18.04_amd64.deb
-        - cpp-7_7.3.0-27ubuntu1~18.04_amd64.deb
-        - cpp_4%3a7.3.0-3ubuntu2.1_amd64.deb
-        - gcc-7_7.3.0-27ubuntu1~18.04_amd64.deb
-        - gcc-7-base_7.3.0-27ubuntu1~18.04_amd64.deb
-        - gcc_4%3a7.3.0-3ubuntu2.1_amd64.deb
-        - libasan4_7.3.0-27ubuntu1~18.04_amd64.deb
-        - libatomic1_8.2.0-1ubuntu2~18.04_amd64.deb
-        - libbinutils_2.30-21ubuntu1~18.04_amd64.deb
-        - libcc1-0_8.2.0-1ubuntu2~18.04_amd64.deb
-        - libcilkrts5_7.3.0-27ubuntu1~18.04_amd64.deb
-        - libgcc-7-dev_7.3.0-27ubuntu1~18.04_amd64.deb
-        - libgomp1_8.2.0-1ubuntu2~18.04_amd64.deb
+        - binutils-common_2.30-21ubuntu1~18.04.2_amd64.deb
+        - binutils-x86-64-linux-gnu_2.30-21ubuntu1~18.04.2_amd64.deb
+        - binutils_2.30-21ubuntu1~18.04.2_amd64.deb
+        - cpp-7_7.4.0-1ubuntu1~18.04.1_amd64.deb
+        - cpp_4%3a7.4.0-1ubuntu2.3_amd64.deb
+        - gcc-7_7.4.0-1ubuntu1~18.04.1_amd64.deb
+        - gcc-7-base_7.4.0-1ubuntu1~18.04.1_amd64.deb
+        - gcc_4%3a7.4.0-1ubuntu2.3_amd64.deb
+        - icpc-kotlinc_1.3.50~icpc_all.deb
+        - libasan4_7.4.0-1ubuntu1~18.04.1_amd64.deb
+        - libatomic1_8.3.0-6ubuntu1~18.04.1_amd64.deb
+        - libbinutils_2.30-21ubuntu1~18.04.2_amd64.deb
+        - libcc1-0_8.3.0-6ubuntu1~18.04.1_amd64.deb
+        - libcilkrts5_7.4.0-1ubuntu1~18.04.1_amd64.deb
+        - libgcc-7-dev_7.4.0-1ubuntu1~18.04.1_amd64.deb
+        - libgomp1_8.3.0-6ubuntu1~18.04.1_amd64.deb
         - libisl19_0.19-1_amd64.deb
-        - libitm1_8.2.0-1ubuntu2~18.04_amd64.deb
-        - liblsan0_8.2.0-1ubuntu2~18.04_amd64.deb
+        - libitm1_8.3.0-6ubuntu1~18.04.1_amd64.deb
+        - liblsan0_8.3.0-6ubuntu1~18.04.1_amd64.deb
         - libmpc3_1.1.0-1_amd64.deb
         - libmpfr6_4.0.1-1_amd64.deb
-        - libmpx2_8.2.0-1ubuntu2~18.04_amd64.deb
-        - libquadmath0_8.2.0-1ubuntu2~18.04_amd64.deb
-        - libtsan0_8.2.0-1ubuntu2~18.04_amd64.deb
-        - libubsan0_7.3.0-27ubuntu1~18.04_amd64.deb
-        - openjdk-11-jdk-headless_10.0.2+13-1ubuntu0.18.04.3_amd64.deb
-        - openjdk-11-jdk_10.0.2+13-1ubuntu0.18.04.3_amd64.deb
-        - openjdk-11-jre-headless_10.0.2+13-1ubuntu0.18.04.3_amd64.deb
-        - openjdk-11-jre_10.0.2+13-1ubuntu0.18.04.3_amd64.deb
-        - pypy-lib_5.10.0+dfsg-3build2_amd64.deb
-        - pypy_5.10.0+dfsg-3build2_amd64.deb
-        - python3.7-minimal_3.7.1-1~18.04_amd64.deb
-        - python3.7_3.7.1-1~18.04_amd64.deb
-        - libpython3.7-minimal_3.7.1-1~18.04_amd64.deb
-        - libpython3.7-stdlib_3.7.1-1~18.04_amd64.deb
+        - libmpx2_8.3.0-6ubuntu1~18.04.1_amd64.deb
+        - libquadmath0_8.3.0-6ubuntu1~18.04.1_amd64.deb
+        - libtsan0_8.3.0-6ubuntu1~18.04.1_amd64.deb
+        - libubsan0_7.4.0-1ubuntu1~18.04.1_amd64.deb
+        - openjdk-11-jdk-headless_11.0.4+11-1ubuntu2~18.04.3_amd64.deb
+        - openjdk-11-jdk_11.0.4+11-1ubuntu2~18.04.3_amd64.deb
+        - openjdk-11-jre-headless_11.0.4+11-1ubuntu2~18.04.3_amd64.deb
+        - openjdk-11-jre_11.0.4+11-1ubuntu2~18.04.3_amd64.deb
+        - pypy-lib_7.1.1+dfsg-1~ppa1~ubuntu18.04_amd64.deb
+        - pypy_7.1.1+dfsg-1~ppa1~ubuntu18.04_amd64.deb
+        - pypy3-lib_7.1.1+dfsg-1~ppa1~ubuntu18.04_amd64.deb
+        - pypy3_7.1.1+dfsg-1~ppa1~ubuntu18.04_amd64.deb
 
     - name: create chroot
       shell: "{{DJDIR}}/misc-tools/dj_make_chroot -y -i openjdk-11-jdk -l '/root/chroot_debs/*.deb' 2>&1 | tee /tmp/dj_make_chroot.log"
@@ -145,13 +122,12 @@
         creates: "/chroot/domjudge"
       register: chroot_created
 
-    - name: set python3.7 as default in chroot
-      shell: "chroot /chroot/domjudge update-alternatives {{ item }}"
+    - name: symlink kotlin binaries
+      shell: "chroot /chroot/domjudge ln -s /usr/lib/kotlinc/bin/{{ item }} /usr/bin"
       when: chroot_created.changed
       with_items:
-        - --install /usr/bin/python3 python3 /usr/bin/python3.6 1
-        - --install /usr/bin/python3 python3 /usr/bin/python3.7 2
-        - --set python3 /usr/bin/python3.7
+        - kotlin
+        - kotlinc
         
     - name: set up default greeter
       shell: "apt install lightdm-webkit-greeter --reinstall -y"

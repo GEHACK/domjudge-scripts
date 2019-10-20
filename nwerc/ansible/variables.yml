@@ -23,3 +23,6 @@ DJ_SHELL_USER_PW: some-hashed-password
 
 # Key for domjudge user
 DJ_SSH_KEY: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEW4j7DOQ/BGT6ATtBLAcUHGVuHyydqs7E31DMbcX5uO icpc2018@domjudge-ccsadmin2
+
+# Branch to use
+GIT_BRANCH: master
