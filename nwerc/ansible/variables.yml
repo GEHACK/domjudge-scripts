@@ -1,11 +1,11 @@
 # Directory of the domjudge repository checkout.
-DJDIR: /opt/domjudge-nwerc
+DJDIR: /opt/domjudge-nwerc2019
 
 # URL of domserver
-DOMSERVER_URL: "https://judge.gehack.nl"
+DOMSERVER_URL: "https://judge"
 
-DJ_DB_DB: domjudge_nwerc
-DJ_DB_USER: domjudge_nwerc
+DJ_DB_DB: domjudge_nwerc2019
+DJ_DB_USER: domjudge_nwerc2019
 DJ_DB_PASS: somedbpass
 
 TIMEZONE: "Europe/Amsterdam"
