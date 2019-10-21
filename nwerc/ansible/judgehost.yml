@@ -206,3 +206,8 @@
 
     - name: enable and restart collectd
       service: name=collectd enabled=yes state=restarted
+
+    - name: remove pixie cron
+      file:
+        path: /etc/cron.d/notif-pixie
+        state: absent
