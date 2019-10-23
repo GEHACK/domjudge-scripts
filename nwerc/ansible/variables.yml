@@ -1,6 +1,14 @@
 # Directory of the domjudge repository checkout.
 DJDIR: /opt/domjudge-nwerc2019
 
+# Directory of contest data for both the test session as well as the real contest
+CONTEST_DATA_TEST_DIR: /home/cds/contest-data-nwerc2019t
+CONTEST_DATA_DIR: /home/cds/contest-data-nwerc2019
+
+CDS_USER: cds
+CDS_GROUP: cds
+CDS_SERVICE: cds-nwerc2019
+
 # URL of domserver
 DOMSERVER_URL: "https://judge"
 

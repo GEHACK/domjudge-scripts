@@ -1,0 +1,169 @@
+---
+
+- name: setup assets
+  hosts: domserver
+  become: yes
+  handlers:
+    - name: restart cds
+      service: name={{CDS_SERVICE}} state=restarted
+
+  tasks:
+    - name: include global variables
+      include_vars: variables.yml
+
+    - name: copy banner to DOMjudge
+      copy:
+        src: files/banner.png
+        dest: "{{DJDIR}}/webapp/public/images/banner.png"
+        owner: domjudge
+        group: domjudge
+
+    - name: copy banner to CDS
+      copy:
+        src: files/banner-cds.png
+        dest: "{{item}}/banner.png"
+        owner: "{{CDS_USER}}"
+        group: "{{CDS_GROUP}}"
+      with_items:
+        - "{{CONTEST_DATA_TEST_DIR}}"
+        - "{{CONTEST_DATA_DIR}}"
+      notify:
+       - restart cds
+
+    - name: copy logo to CDS
+      copy:
+        src: files/logo-cds.png
+        dest: "{{item}}/logo.png"
+        owner: "{{CDS_USER}}"
+        group: "{{CDS_GROUP}}"
+      with_items:
+        - "{{CONTEST_DATA_TEST_DIR}}"
+        - "{{CONTEST_DATA_DIR}}"
+      notify:
+       - restart cds
+
+    - name: copy organization logo's to DOMjudge
+      copy:
+        src: "{{item.root}}/{{item.path}}/logo-64.png"
+        dest: "{{DJDIR}}/webapp/public/images/affiliations/{{item.path}}.png"
+        owner: domjudge
+        group: domjudge
+      with_filetree: files/organization-logos
+      when: item.state == 'directory'
+
+    - name: copy team photos to DOMjudge
+      copy:
+        src: "{{item.root}}/{{item.path}}/photo.jpg"
+        dest: "{{DJDIR}}/webapp/public/images/teams/{{item.path}}.jpg"
+        owner: domjudge
+        group: domjudge
+      with_filetree: files/team-photos
+      when: item.state == 'directory'
+
+    - name: create CDS test session organization root directory
+      file:
+        path: "{{CONTEST_DATA_TEST_DIR}}/organizations"
+        state: directory
+        owner: "{{CDS_USER}}"
+        group: "{{CDS_GROUP}}"
+
+    - name: create CDS contest organization root directory
+      file:
+        path: "{{CONTEST_DATA_DIR}}/organizations"
+        state: directory
+        owner: "{{CDS_USER}}"
+        group: "{{CDS_GROUP}}"
+
+    - name: create CDS test session organization directories
+      file:
+        path: "{{CONTEST_DATA_TEST_DIR}}/organizations/{{item.path}}"
+        state: directory
+        owner: "{{CDS_USER}}"
+        group: "{{CDS_GROUP}}"
+      with_filetree: files/organization-logos
+      when: item.state == 'directory'
+
+    - name: create CDS contest organization directories
+      file:
+        path: "{{CONTEST_DATA_DIR}}/organizations/{{item.path}}"
+        state: directory
+        owner: "{{CDS_USER}}"
+        group: "{{CDS_GROUP}}"
+      with_filetree: files/organization-logos
+      when: item.state == 'directory'
+
+    - name: copy organization logo's to CDS test session directory
+      copy:
+        src: "{{item.root}}/{{item.path}}/logo-512.png"
+        dest: "{{CONTEST_DATA_TEST_DIR}}/organizations/{{item.path}}/logo.png"
+        owner: domjudge
+        group: domjudge
+      with_filetree: files/organization-logos
+      when: item.state == 'directory'
+      notify:
+       - restart cds
+
+    - name: copy organization logo's to CDS contest directory
+      copy:
+        src: "{{item.root}}/{{item.path}}/logo-512.png"
+        dest: "{{CONTEST_DATA_DIR}}/organizations/{{item.path}}/logo.png"
+        owner: domjudge
+        group: domjudge
+      with_filetree: files/organization-logos
+      when: item.state == 'directory'
+      notify:
+       - restart cds
+
+    - name: create CDS test session team root directory
+      file:
+        path: "{{CONTEST_DATA_TEST_DIR}}/teams"
+        state: directory
+        owner: "{{CDS_USER}}"
+        group: "{{CDS_GROUP}}"
+
+    - name: create CDS contest team root directory
+      file:
+        path: "{{CONTEST_DATA_DIR}}/teams"
+        state: directory
+        owner: "{{CDS_USER}}"
+        group: "{{CDS_GROUP}}"
+
+    - name: create CDS test session team directories
+      file:
+        path: "{{CONTEST_DATA_TEST_DIR}}/teams/{{item.path}}"
+        state: directory
+        owner: "{{CDS_USER}}"
+        group: "{{CDS_GROUP}}"
+      with_filetree: files/team-photos
+      when: item.state == 'directory'
+
+    - name: create CDS contest team directories
+      file:
+        path: "{{CONTEST_DATA_DIR}}/teams/{{item.path}}"
+        state: directory
+        owner: "{{CDS_USER}}"
+        group: "{{CDS_GROUP}}"
+      with_filetree: files/team-photos
+      when: item.state == 'directory'
+
+    - name: copy team photos to CDS test session directory
+      copy:
+        src: "{{item.root}}/{{item.path}}/photo.jpg"
+        dest: "{{CONTEST_DATA_TEST_DIR}}/teams/{{item.path}}/photo.jpg"
+        owner: domjudge
+        group: domjudge
+      with_filetree: files/team-logos
+      when: item.state == 'directory'
+      notify:
+       - restart cds
+
+    - name: copy team photos to CDS contest directory
+      copy:
+        src: "{{item.root}}/{{item.path}}/photo.jpg"
+        dest: "{{CONTEST_DATA_DIR}}/teams/{{item.path}}/photo.jpg"
+        owner: domjudge
+        group: domjudge
+      with_filetree: files/team-logos
+      when: item.state == 'directory'
+      notify:
+       - restart cds
