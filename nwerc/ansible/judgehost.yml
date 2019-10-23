@@ -4,6 +4,11 @@
   hosts: judgehost
   become: yes
   tasks:
+    - name: remove pixie cron
+      file:
+        path: /etc/cron.d/notif-pixie
+        state: absent
+
     - name: include global variables
       include_vars: variables.yml
 
@@ -206,8 +211,3 @@
 
     - name: enable and restart collectd
       service: name=collectd enabled=yes state=restarted
-
-    - name: remove pixie cron
-      file:
-        path: /etc/cron.d/notif-pixie
-        state: absent
