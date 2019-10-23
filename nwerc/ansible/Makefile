@@ -5,7 +5,16 @@ default:
 	@echo " - make assets"
 	@echo " - make judgehost"
 
-domserver judgehost assets: %: %.yml hosts $(wildcard common_tasks*.yml)
+EXECDIRS=$(shell find files/compile-scripts -mindepth 1 -maxdepth 1 -type d)
+ZIPFILES=$(EXECDIRS:=.zip)
+
+# Use secondary expansion to use stem $* in dependencies:
+.SECONDEXPANSION:
+$(ZIPFILES): %.zip: $$(wildcard $$*/*)
+	@rm -f $@
+	zip -qjr $@ $*
+
+domserver judgehost assets: %: %.yml hosts $(wildcard common_tasks*.yml) $(ZIPFILES)
 	ansible-playbook -i hosts $<
 
 clean:

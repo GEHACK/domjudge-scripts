@@ -41,11 +41,12 @@
         - mycli
         - screen
         - qmlscene
-        - linuxdoc-tools
         - texlive-latex-recommended
         - texlive-latex-extra
         - texlive-fonts-recommended
         - texlive-lang-european
+        - python3-sphinx
+        - python3-sphinx-rtd-theme
         - python-pygments
         - collectd
 

@@ -94,10 +94,31 @@
 
     - include: common_tasks_build.yml
 
+    - name: copy NWERC executables
+      copy:
+        src: files/compile-scripts/
+        dest: "{{DJDIR}}/sql/files/nwerc"
+        owner: domjudge
+        group: domjudge
+
+    - name: copy NWERC migration files
+      copy:
+        src: "{{item.root}}/{{item.path}}"
+        dest: "{{DJDIR}}/webapp/src/Migrations/{{item.path}}"
+        owner: domjudge
+        group: domjudge
+      with_filetree: files/migrations
+      when: item.state == 'file'
+
     - name: check if the database is configured
       command: "{{DJDIR}}/bin/dj_setup_database -u root status"
       register: db_status
       ignore_errors: true
+      
     - name: make sure the database is configured
       command: "{{DJDIR}}/bin/dj_setup_database -u root bare-install"
       when: "'failed' in db_status.stdout"
+      
+    - name: upgrade the database
+      command: "{{DJDIR}}/bin/dj_setup_database -u root upgrade"
+      when: "'failed' not in db_status.stdout"
