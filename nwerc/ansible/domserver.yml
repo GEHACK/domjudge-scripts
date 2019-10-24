@@ -94,6 +94,12 @@
 
     - include: common_tasks_build.yml
 
+    - name: build domjudge documentation
+      become: yes
+      become_user: domjudge
+      shell: make docs chdir={{DJDIR}}
+      when: git_working_copy.changed or dj_configured.changed or not judgedaemon_binary.stat.exists
+
     - name: copy NWERC executables
       copy:
         src: files/compile-scripts/
@@ -122,3 +128,9 @@
     - name: upgrade the database
       command: "{{DJDIR}}/bin/dj_setup_database -u root upgrade"
       when: "'failed' not in db_status.stdout"
+
+    - name: clear symfony cache
+      become: yes
+      become_user: domjudge
+      shell: webapp/bin/console cache:clear chdir={{DJDIR}}
+      when: git_working_copy.changed or dj_configured.changed or not judgedaemon_binary.stat.exists
