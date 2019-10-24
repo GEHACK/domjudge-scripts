@@ -10,7 +10,7 @@ CDS_GROUP: cds
 CDS_SERVICE: cds-nwerc2019
 
 # URL of domserver
-DOMSERVER_URL: "https://judge"
+DOMSERVER_URL: "https://judge/"
 
 DJ_DB_DB: domjudge_nwerc2019
 DJ_DB_USER: domjudge_nwerc2019
