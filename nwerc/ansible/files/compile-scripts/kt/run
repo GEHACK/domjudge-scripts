@@ -15,22 +15,25 @@ MAINSOURCE="$1"
 MAINCLASS=""
 COMPILESCRIPTDIR="$(dirname "$0")"
 
-# Stack size in the JVM in KB. Note that this will be deducted from
+# Stack size in the JVM in MB. Note that this will be deducted from
 # the total memory made available for the heap.
-MEMSTACK=131072
+MEMSTACK=128
 
-# Amount of memory reserved for the Java virtual machine in KB. The
+# Amount of memory reserved for the Java virtual machine in MB. The
 # default below is just above the maximum memory usage of current
 # versions of the jvm, but might need increasing in some cases.
-MEMJVM=65536
+MEMJVM=64
 
 MEMRESERVED=$((MEMSTACK + MEMJVM))
+
+# KB -> MB
+MEMLIMIT=$((MEMLIMIT / 1024))
 
 # Calculate Java program memlimit as MEMLIMIT - max. JVM memory usage:
 MEMLIMITJAVA=$((MEMLIMIT - MEMRESERVED))
 
 if [ $MEMLIMITJAVA -le 0 ]; then
-	echo "internal-error: total memory $MEMLIMIT KiB <= $MEMJVM + $MEMSTACK = $MEMRESERVED KiB reserved for JVM and stack leaves none for heap."
+	echo "internal-error: total memory $MEMLIMIT MB <= $MEMJVM + $MEMSTACK = $MEMRESERVED MB reserved for JVM and stack leaves none for heap."
 	exit 1
 fi
 
@@ -71,7 +74,7 @@ EXITCODE=$?
 # -Xmx: maximum size of memory allocation pool
 # -Xms: initial size of memory, improves runtime stability
 # -XX:+UseSerialGC: Serialized garbage collector improves runtime stability
-# -Xss${MEMSTACK}k: stack size as configured abve
+# -Xss${MEMSTACK}m: stack size as configured above
 # -Dfile.encoding=UTF-8: set file encoding to UTF-8
 cat > "$DEST" <<EOF
 #!/bin/sh
@@ -85,7 +88,7 @@ fi
 # Add -J-DONLINE_JUDGE or -J-DDOMJUDGE below if you want it make easier for
 # teams to do local debugging.
 
-exec kotlin -Dfile.encoding=UTF-8 -J-XX:+UseSerialGC -J-Xss${MEMSTACK}k -J-Xms${MEMLIMITJAVA}k -J-Xmx${MEMLIMITJAVA}k '$MAINCLASS' "\$@"
+exec kotlin -Dfile.encoding=UTF-8 -J-XX:+UseSerialGC -J-Xss${MEMSTACK}m -J-Xms${MEMLIMITJAVA}m -J-Xmx${MEMLIMITJAVA}m '$MAINCLASS' "\$@"
 EOF
 
 chmod a+x "$DEST"
