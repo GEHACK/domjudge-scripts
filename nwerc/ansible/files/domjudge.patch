@@ -1,0 +1,43 @@
+diff --git a/submit/submit.cc b/submit/submit.cc
+index e295b9b98..46814210d 100644
+--- a/submit/submit.cc
++++ b/submit/submit.cc
+@@ -391,6 +391,10 @@ int main(int argc, char **argv)
+ 	langid = stringtolower(langid);
+ 	for(i=0; i<languages.size(); i++) {
+ 		for(j=0; j<languages[i].extensions.size(); j++) {
++			if ( languages[i].id == "python2" &&
++				 stringtolower(languages[i].extensions[j]) == "py" ) {
++				continue;
++			}
+ 			if ( stringtolower(languages[i].extensions[j]) == langid ) {
+ 				mylanguage = languages[i];
+ 				goto lang_found;
+diff --git a/webapp/templates/partials/javascript_language_detect.html.twig b/webapp/templates/partials/javascript_language_detect.html.twig
+index 477a1064f..7ee8680e6 100644
+--- a/webapp/templates/partials/javascript_language_detect.html.twig
++++ b/webapp/templates/partials/javascript_language_detect.html.twig
+@@ -4,8 +4,10 @@
+         switch (ext) {
+                 {% for language in submission_languages %}
+                 {% for extension in language.extensions %}
++                {% if language.langid != 'py2' or extension != 'py' %}
+             case '{{ extension }}':
+                 return '{{ language.langid }}';
++                {% endif %}
+                 {% endfor %}
+                 {% endfor %}
+             default:
+diff --git a/webapp/templates/partials/scoreboard.html.twig b/webapp/templates/partials/scoreboard.html.twig
+index 80e256c7b..86b4f130a 100644
+--- a/webapp/templates/partials/scoreboard.html.twig
++++ b/webapp/templates/partials/scoreboard.html.twig
+@@ -134,6 +134,7 @@
+ 
+     <p id="lastmod">
+         Last Update: {{ null | printtime('%a %d %b %Y %T %Z') }}<br/>
+-        using <a href="https://www.domjudge.org/" target="_top">DOMjudge</a>
++        using <a href="https://www.domjudge.org/" target="_top">DOMjudge</a><br />
++        University logos from <a href="https://open.kattis.com/">Kattis</a>
+     </p>
+ {% endif %}

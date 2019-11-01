@@ -80,8 +80,16 @@
     - name: create working copy from the repo
       become: yes
       become_user: domjudge
-      git: repo=https://github.com/DOMjudge/domjudge.git dest={{DJDIR}} version={{GIT_BRANCH}} accept_hostkey=yes update=yes
+      git: repo=https://github.com/DOMjudge/domjudge.git dest={{DJDIR}} version={{GIT_BRANCH}} accept_hostkey=yes update=yes force=yes
       register: git_working_copy
+
+    - name: apply NWERC specific patch
+      become: yes
+      become_user: domjudge
+      patch:
+        src: files/domjudge.patch
+        basedir: "{{DJDIR}}"
+        strip: 1
 
     - name: fix permissions on composer directory
       file: path="{{DJDIR}}/lib/vendor/" group=domjudge owner=domjudge recurse=yes
