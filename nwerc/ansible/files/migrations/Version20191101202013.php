@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20191023190523 extends AbstractMigration
+final class Version20191101202013 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -40,6 +40,7 @@ UPDATE `configuration` SET `value` = '["ipaddress"]' WHERE `name` = 'auth_method
 UPDATE `configuration` SET `value` = '1' WHERE `name` = 'ip_autologin';
 
 UPDATE `language` SET `require_entry_point` = 1, `allow_submit` = 1 WHERE `langid` IN ('java', 'kt', 'py2', 'py3');
+UPDATE `language` SET `extensions` = '["py2","py"]' WHERE `langid` = 'py2';
 SQL
         );
     }
