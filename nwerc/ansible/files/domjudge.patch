@@ -13,6 +13,21 @@ index e295b9b98..46814210d 100644
  			if ( stringtolower(languages[i].extensions[j]) == langid ) {
  				mylanguage = languages[i];
  				goto lang_found;
+diff --git a/webapp/src/Controller/API/ContestController.php b/webapp/src/Controller/API/ContestController.php
+index 259cabeb7..0cb6b3334 100644
+--- a/webapp/src/Controller/API/ContestController.php
++++ b/webapp/src/Controller/API/ContestController.php
+@@ -428,6 +428,10 @@ class ContestController extends AbstractRestController
+                     if (!$strict) {
+                         $result['time'] = Utils::absTime($event->getEventtime());
+                     }
++                    // NWERC 2019 'hack': do not expose company teams
++                    if ($result['type'] === 'groups' && $result['op'] !== 'delete' && $result['data']['name'] === 'Companies') {
++                        $result['data']['hidden'] = true;
++                    }
+                     echo json_encode($result, JSON_PRESERVE_ZERO_FRACTION | JSON_UNESCAPED_SLASHES) . "\n";
+                     ob_flush();
+                     flush();
 diff --git a/webapp/templates/partials/javascript_language_detect.html.twig b/webapp/templates/partials/javascript_language_detect.html.twig
 index 477a1064f..7ee8680e6 100644
 --- a/webapp/templates/partials/javascript_language_detect.html.twig
@@ -29,7 +44,7 @@ index 477a1064f..7ee8680e6 100644
                  {% endfor %}
              default:
 diff --git a/webapp/templates/partials/scoreboard.html.twig b/webapp/templates/partials/scoreboard.html.twig
-index 80e256c7b..86b4f130a 100644
+index 0600b14b2..da6fafbac 100644
 --- a/webapp/templates/partials/scoreboard.html.twig
 +++ b/webapp/templates/partials/scoreboard.html.twig
 @@ -134,6 +134,7 @@
