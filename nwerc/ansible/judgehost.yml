@@ -183,6 +183,9 @@
         - tune_cpu
         - judgedaemon
 
+    - name: disable conflicting ondemand service
+      service: name=ondemand enabled=no state=stopped
+
     - name: autologin domjudge user
       copy: src=files/lightdm-domjudge.conf dest=/etc/lightdm/lightdm.conf.d/domjudge.conf
 
