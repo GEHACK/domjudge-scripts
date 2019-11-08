@@ -4,6 +4,8 @@ shopt -s extglob
 
 declare -A core_ids
 
+rm -f /tmp/disable_turboboost_success
+
 DIR=/sys/devices/system/cpu/intel_pstate
 if [ -d $DIR ]; then
 	# now disable turbo boost
@@ -30,8 +32,22 @@ for cpu in /sys/devices/system/cpu/cpu* ; do
 	# Disable all but one thread on each core.
 	core_id=$(cat $cpu/topology/core_id)
 	if [[ ${core_ids[$core_id]} ]]; then
-		echo 0 > $cpu/online
+		for i in 1 2 3 4 5; do
+			# Try it for a number of times, sometimes it fails with
+			# echo: write error: Device or resource busy
+			set +e
+			echo 0 > $cpu/online
+			sleep 2s
+			set -e
+		done
+		online=$(cat $cpu/online)
+		if [[ $online -ne 0 ]]; then
+			echo "disabling $cpu failed"
+			exit 1
+		fi
 	else
 		core_ids[$core_id]=1
 	fi
 done
+
+touch /tmp/disable_turboboost_success
