@@ -44,7 +44,7 @@ index 477a1064f..7ee8680e6 100644
                  {% endfor %}
              default:
 diff --git a/webapp/templates/partials/scoreboard.html.twig b/webapp/templates/partials/scoreboard.html.twig
-index 0600b14b2..da6fafbac 100644
+index b874d9c4a..aa75a93dc 100644
 --- a/webapp/templates/partials/scoreboard.html.twig
 +++ b/webapp/templates/partials/scoreboard.html.twig
 @@ -134,6 +134,7 @@
@@ -56,3 +56,17 @@ index 0600b14b2..da6fafbac 100644
 +        University logos from <a href="https://open.kattis.com/">Kattis</a>
      </p>
  {% endif %}
+diff --git a/webapp/templates/team/menu.html.twig b/webapp/templates/team/menu.html.twig
+index c64f7ac21..05ce53ba5 100644
+--- a/webapp/templates/team/menu.html.twig
++++ b/webapp/templates/team/menu.html.twig
+@@ -21,6 +21,9 @@
+                     <a class="nav-link disabled"><i class="fas fa-book-open"></i> Problemset</a>
+                 {% endif %}
+             </li>
++            <a class="nav-link" href="https://docs/" target="_blank">
++                <i class="fas fa-file-alt"></i> Docs
++            </a>
+             {% if have_printing %}
+                 <li class="nav-item {% if current_route == 'team_print' %}active{% endif %}">
+                     <a class="nav-link" href="{{ path('team_print') }}"><i class="fas fa-file-alt"></i> Print</a>
