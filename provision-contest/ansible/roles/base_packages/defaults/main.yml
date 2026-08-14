@@ -3,6 +3,8 @@ REMOVED_PACKAGES:
   - ntp
 
 INSTALLED_PACKAGES:
+  - rsync
+  - yarnpkg
   - ack
   - acl
   - apache2-utils

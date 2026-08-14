@@ -1,1 +1,112 @@
-../../../../disable-turboboost_ht
+#!/bin/bash
+set -eu -o pipefail
+
+shopt -s extglob
+
+declare -A core_ids
+declare -a disabled_cores
+
+disable_cpu () {
+  cpu="$1"
+  echo 0 > $cpu/online
+  disabled_cores+=("${cpu##*/}")
+}
+
+store_isolcpus_fact="/var/tmp/isolcpus"
+
+# Learn all efficency cores if they exist
+cpu_list=()
+if [ -f /sys/devices/cpu_atom/cpus ]; then
+  range="$(cat /sys/devices/cpu_atom/cpus)"
+  IFS='-' read -r start end <<< "$range"
+  # shellcheck disable=SC2207,SC2175
+  cpu_list=($(eval echo {$start..$end}))
+fi
+
+# shellcheck disable=SC2012
+for cpu in $(ls -1d /sys/devices/system/cpu/cpu* | sort --version-sort) ; do
+    [[ $(basename $cpu) =~ ^cpu[0-9]+$ ]] || continue
+
+    # Reenable stuff in case we are rerunning this script.
+    [ -f $cpu/online ] && echo 1 > $cpu/online
+    if [ -f $cpu/cpufreq/scaling_governor ]; then
+        chmod u+w $cpu/cpufreq/scaling_governor
+    fi
+    for boundary in min max; do
+        if [ -f $cpu/cpufreq/scaling_${boundary}_freq ]; then
+            chmod u+w $cpu/cpufreq/scaling_${boundary}_freq
+        fi
+    done
+
+    # Set governor to performance and do not allow changes later on.
+    if [ -f $cpu/cpufreq/scaling_governor ]; then
+        echo performance > $cpu/cpufreq/scaling_governor
+        chmod a-w $cpu/cpufreq/scaling_governor
+    fi
+
+    # Hardware maximum performance.
+    if [ -f $cpu/cpufreq/scaling_min_freq ] && [ -f $cpu/cpufreq/scaling_max_freq ]; then
+        cp $cpu/cpufreq/scaling_{max,min}_freq
+        chmod a-w $cpu/cpufreq/scaling_{max,min}_freq
+    fi
+
+    # Disable all but one thread on each core per socket. Both core_id and physical_package_id
+    # are numbers so it must be ensured that for the following examples are seen as distinct:
+    #  - core_id=1,  physical_package=11
+    #  - core_id=11, physical_package=1
+    # Simple concatenation would result in the string '111' for both cores. Though `cat`
+    # adds a newline after each file, we do not want to rely on `cat` to always add this
+    # 'delimiter'.
+    core_id=$(cat $cpu/topology/core_id | tr -d '\n')'-'$(cat $cpu/topology/physical_package_id | tr -d '\n')
+
+    # Disable all efficiency cores
+    found=0
+    for efficiency_core in "${cpu_list[@]}"; do
+      if [[ "$cpu" == "/sys/devices/system/cpu/cpu$efficiency_core" ]]; then
+        disable_cpu $cpu
+        found=1
+        break
+      fi
+    done
+    if [ "$found" -eq "1" ]; then
+      continue
+    fi
+
+    if [[ ${core_ids[$core_id]:-} ]]; then
+        disable_cpu $cpu
+    else
+        core_ids[$core_id]=1
+    fi
+done
+
+if [ -n "${store_isolcpus_fact}" ]; then
+  csv_string=$(IFS=, ; echo "${disabled_cores[*]}")
+  echo "$csv_string" > "$store_isolcpus_fact"
+fi
+
+DIR_INTEL=/sys/devices/system/cpu/intel_pstate
+DIR_AMD=/sys/devices/system/cpu/cpufreq
+# Same for some ARM CPUs
+FILE_AMD=$DIR_AMD/boost
+if [ -d $DIR_INTEL ]; then
+    # now disable turbo boost
+    FILE=$DIR_INTEL/no_turbo
+    echo -n 1 > $FILE || echo "Could not write to '$FILE', ignoring for now..."
+    if [ $(cat $FILE) -ne 1 ]; then
+        echo "Error: turboboost still enabled!"
+        exit 1
+    fi
+
+    # increase freq from powersaving to normal, but don't overclock
+    echo 100 > $DIR_INTEL/min_perf_pct
+    echo 100 > $DIR_INTEL/max_perf_pct
+elif [ -f $FILE_AMD ]; then
+    # now disable boosting
+    echo -n 0 > $FILE_AMD || echo "Could not write to '$FILE_AMD', ignoring for now..."
+    if [ $(cat $FILE_AMD) -ne 0 ]; then
+        echo "Error: turboboost still enabled!"
+        exit 1
+    fi
+else
+    echo "Warning: kernel (turbo) boost config not found in '$DIR_INTEL' or '$DIR_AMD'."
+fi

@@ -1,0 +1,65 @@
+---
+# Languages that are not (recent enough) in the distribution repositories are
+# installed into the chroot from their upstream releases. They are unpacked
+# under /usr/lib inside the chroot and linked into /usr/local/bin, which is on
+# the PATH that runguard passes on to the compile and run scripts.
+
+- name: Install unzip to unpack the Kotlin release
+  when: KOTLIN_INSTALL
+  apt:
+    name: unzip
+    state: present
+
+- name: Download Kotlin compiler
+  when: KOTLIN_INSTALL
+  get_url:
+    url: "https://github.com/JetBrains/kotlin/releases/download/v{{ KOTLIN_VERSION }}/kotlin-compiler-{{ KOTLIN_VERSION }}.zip"
+    dest: "/tmp/dj_ansible/kotlin-compiler-{{ KOTLIN_VERSION }}.zip"
+    mode: 0644
+
+- name: Unpack Kotlin compiler in the chroot
+  when: KOTLIN_INSTALL
+  unarchive:
+    src: "/tmp/dj_ansible/kotlin-compiler-{{ KOTLIN_VERSION }}.zip"
+    dest: /chroot/domjudge/usr/lib
+    remote_src: true
+    creates: /chroot/domjudge/usr/lib/kotlinc/bin/kotlinc
+
+- name: Link Kotlin into the chroot PATH
+  when: KOTLIN_INSTALL
+  file:
+    src: "/usr/lib/kotlinc/bin/{{ item }}"
+    dest: "/chroot/domjudge/usr/local/bin/{{ item }}"
+    state: link
+    # The link target only resolves inside the chroot, not on the host.
+    force: true
+    follow: false
+  loop:
+    - kotlinc
+    - kotlin
+
+- name: Download PyPy
+  when: PYPY_INSTALL
+  get_url:
+    url: "https://downloads.python.org/pypy/pypy{{ PYPY_PYTHON_VERSION }}-v{{ PYPY_VERSION }}-linux64.tar.bz2"
+    dest: "/tmp/dj_ansible/pypy{{ PYPY_PYTHON_VERSION }}-v{{ PYPY_VERSION }}-linux64.tar.bz2"
+    mode: 0644
+
+- name: Unpack PyPy in the chroot
+  when: PYPY_INSTALL
+  unarchive:
+    src: "/tmp/dj_ansible/pypy{{ PYPY_PYTHON_VERSION }}-v{{ PYPY_VERSION }}-linux64.tar.bz2"
+    dest: /chroot/domjudge/usr/lib
+    remote_src: true
+    creates: "/chroot/domjudge/usr/lib/pypy{{ PYPY_PYTHON_VERSION }}-v{{ PYPY_VERSION }}-linux64/bin/pypy3"
+
+- name: Link PyPy into the chroot PATH
+  when: PYPY_INSTALL
+  # This shadows the distribution pypy3 in /usr/bin, which stays installed
+  # because it pulls in the shared libraries the upstream build needs.
+  file:
+    src: "/usr/lib/pypy{{ PYPY_PYTHON_VERSION }}-v{{ PYPY_VERSION }}-linux64/bin/pypy3"
+    dest: /chroot/domjudge/usr/local/bin/pypy3
+    state: link
+    force: true
+    follow: false

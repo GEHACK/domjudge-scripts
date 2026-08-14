@@ -1,0 +1,108 @@
+#!/bin/bash
+# Compile and run a hello world for every language we expect the judgehosts to
+# support. This catches a chroot that was built without a compiler, or a
+# compiler that cannot run in the chroot (missing shared libraries, no writable
+# temporary directory, ...) before teams run into it.
+#
+# The test environment is built with DOMjudge's own chroot-startstop.sh, so it
+# is set up exactly like a real judging run: the chroot subdirs bind mounted
+# read-only, /proc mounted (Java needs it to resolve the $ORIGIN in its rpath)
+# and only the working directory writable.
+set -eu -o pipefail
+
+DJ_DIR="${1:-/opt/domjudge}"
+CHROOT="${2:-/chroot/domjudge}"
+
+fail=0
+
+"$DJ_DIR"/judge/chroot-startstop.sh check
+
+WORK="$(mktemp -d /tmp/dj_langcheck.XXXXXX)"
+cd "$WORK"
+
+cleanup() {
+    cd "$WORK"
+    "$DJ_DIR"/judge/chroot-startstop.sh stop >/dev/null 2>&1 || true
+    cd /
+    rm -rf "$WORK"
+}
+trap cleanup EXIT
+
+"$DJ_DIR"/judge/chroot-startstop.sh start
+
+# runguard clears the environment and only passes on PATH, which is the one
+# the judgedaemon inherits from systemd. Do the same here: an inherited locale
+# from the calling shell makes e.g. pypy3 fail on a locale the chroot does not
+# have, which no real submission would ever hit.
+CHROOT_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+run() {
+    env -i PATH="$CHROOT_PATH" /usr/sbin/chroot "$WORK" /bin/sh -c "cd / && $1"
+}
+
+check() {
+    lang="$1"
+    shift
+    if ! output="$(run "$*" 2>&1)"; then
+        echo "FAIL $lang: command failed:"
+        echo "$output" | sed 's/^/    /'
+        fail=1
+    elif [ "$(echo "$output" | tail -n1)" != "hello" ]; then
+        echo "FAIL $lang: expected 'hello', got:"
+        echo "$output" | sed 's/^/    /'
+        fail=1
+    else
+        echo "OK   $lang"
+    fi
+}
+
+cat > hello.c <<'EOF'
+#include <stdio.h>
+int main(void) { printf("hello\n"); return 0; }
+EOF
+
+cat > hello.cc <<'EOF'
+#include <iostream>
+int main() { std::cout << "hello" << std::endl; }
+EOF
+
+cat > Hello.java <<'EOF'
+public class Hello {
+    public static void main(String[] args) { System.out.println("hello"); }
+}
+EOF
+
+cat > hello.kt <<'EOF'
+fun main() { println("hello") }
+EOF
+
+cat > hello.py <<'EOF'
+print("hello")
+EOF
+
+echo "== versions =="
+run 'gcc --version | head -n1'
+run 'g++ --version | head -n1'
+run 'javac --version'
+run 'java --version | head -n1'
+# kotlinc -version needs a writable /tmp for its jansi lock file, so read the
+# version that ships with the compiler instead.
+run 'echo "kotlinc $(cat "$(dirname "$(dirname "$(realpath "$(command -v kotlinc)")")")/build.txt")"'
+run 'pypy3 --version | tr "\n" " "; echo'
+
+echo
+echo "== compile and run =="
+check C 'gcc -O2 -o hello_c hello.c && ./hello_c'
+check C++ 'g++ -O2 -std=c++20 -o hello_cc hello.cc && ./hello_cc'
+check Java 'javac Hello.java && java Hello'
+# -Djava.io.tmpdir=/ mirrors what the DOMjudge kt compile script does: the
+# chroot has no /tmp for the Kotlin preloader to point idea.home.path at.
+check Kotlin 'kotlinc -d . -Djava.io.tmpdir=/ hello.kt 2>/dev/null && kotlin HelloKt'
+check PyPy3 'pypy3 hello.py'
+
+echo
+if [ "$fail" -ne 0 ]; then
+    echo "One or more languages are not usable in the chroot."
+    exit 1
+fi
+echo "All languages compile and run in the chroot."

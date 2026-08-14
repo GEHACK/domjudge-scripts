@@ -36,7 +36,7 @@
 - name: Create chroot
   shell: "set -o pipefail &&
           {{ DJ_DIR }}/misc-tools/dj_make_chroot -y -H
-            -i icpc-kotlinc,openjdk-17-jdk-headless
+            {% if CHROOT_EXTRA_PACKAGES %}-i {{ CHROOT_EXTRA_PACKAGES | join(',') }}{% endif %}
             -l \"$(ls /tmp/dj_ansible/install-chroot/*.deb 2>/dev/null | tr '\n' ',')\"
             -s \"$(ls /tmp/dj_ansible/chroot-list/*.list 2>/dev/null | tr '\n' ',')\"
             2>&1 | tee /tmp/dj_make_chroot.log;
@@ -44,15 +44,24 @@
   environment:
     DEBMIRROR: "{%- if WF_RESTRICTED_NETWORK and ICPC_IMAGE -%}https://packages/ubuntu
                 {%- elif ICPC_IMAGE -%}https://sysopspackages.icpc.global/ubuntu
-                {%- else -%}
+                {%- else -%}{{ DEBMIRROR_DEFAULT }}
                 {%- endif -%}"
   args:
     executable: /bin/bash
     creates: "/chroot/domjudge"
 
+- name: Install languages that are not in the distribution repositories
+  include_tasks: chroot-languages.yml
+
+- name: Check that all supported languages compile and run in the chroot
+  script: "check-chroot-languages {{ DJ_DIR }}"
+  changed_when: false
+
 - name: Pre-generate the kernel flags for ansible usage
   set_fact:
-    procline: "apparmor=0 systemd.unified_cgroup_hierarchy=0 cgroup_enable=memory swapaccount=1 isolcpus={{ cpucore | join(',') }}"
+    # No systemd.unified_cgroup_hierarchy=0 here: DOMjudge 9 and later require
+    # cgroup v2, which that option would disable.
+    procline: "apparmor=0 cgroup_enable=memory swapaccount=1 isolcpus={{ cpucore | join(',') }}"
 
 - name: Add cgroup kernel parameters
   lineinfile:
@@ -119,6 +128,33 @@
     - domjudge-judgedaemon@
   notify:
     - Enable and restart create-cgroups
+
+- name: Create judgedaemon systemd drop-in directory
+  file:
+    path: /etc/systemd/system/domjudge-judgedaemon@.service.d
+    state: directory
+    mode: 0755
+    group: root
+    owner: root
+
+- name: Keep the cgroup v2 controllers runguard needs enabled
+  # systemd only enables the controllers its own units need in the root
+  # cgroup's subtree_control, and rewrites that file whenever it configures
+  # units. That drops the cpuset controller create_cgroups enables at boot,
+  # after which runguard fails to create its cgroup with
+  # 'creating cgroup: libcgroup: No such file or directory'.
+  # Delegating the controllers to the judgedaemons makes systemd itself keep
+  # them enabled for as long as a judgedaemon runs.
+  copy:
+    dest: /etc/systemd/system/domjudge-judgedaemon@.service.d/10-cpuset-controller.conf
+    content: |
+      [Service]
+      Delegate=cpuset memory cpu
+    mode: 0644
+    group: root
+    owner: root
+  notify:
+    - Enable and restart judgedaemon
 
 - name: Template judgedaemon template systemd unit file
   template:

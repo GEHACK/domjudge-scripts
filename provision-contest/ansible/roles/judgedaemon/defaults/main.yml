@@ -3,3 +3,23 @@ cpucore:
 # Add additional CPU cores to pin judgedaemons on as:
 # - 3
 # - 4
+
+# Mirror used by debootstrap to bootstrap the judging chroot. This may never
+# be empty: Ansible renders an empty template result as the literal string
+# 'None', which debootstrap then tries to use as a mirror URL.
+DEBMIRROR_DEFAULT: "http://archive.ubuntu.com/ubuntu/"
+
+# Extra packages to install inside the chroot, on top of the defaults of
+# dj_make_chroot (gcc, g++, make, default-jdk/jre-headless, pypy3, locales).
+CHROOT_EXTRA_PACKAGES: []
+
+# Languages that are not packaged by the distribution and are installed into
+# the chroot from upstream releases.
+KOTLIN_INSTALL: true
+KOTLIN_VERSION: "2.4.10"
+
+# PyPy is already installed from the distribution by dj_make_chroot, but that
+# version lags behind. Installing upstream gives teams a recent Python level.
+PYPY_INSTALL: true
+PYPY_VERSION: "7.3.23"
+PYPY_PYTHON_VERSION: "3.11"
